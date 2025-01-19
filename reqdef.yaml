@@ -1,0 +1,95 @@
+requirements:
+  title: "高速データ処理実践"
+  target_audience:
+    - 実際にデータ処理をコーディングしたいエンジニア
+    - pandas、numpy、PySparkに興味がある方
+  duration: 45
+  objectives:
+    high_level:
+      - ローカル環境でのPySparkによるデータ処理の理解と実装
+      - AWS Glue上でのPySparkジョブの設定・実行体験
+      - Step Functionsを使ったワークフローの構築とSNS通知・S3保存の実演
+    detailed:
+      - ローカルJupyter NotebookでPySparkを使った統計処理の実装
+      - ローカルで動作確認したPySparkコードをAWS Glueに移行し実行する方法の学習
+      - Step Functionsによるワークフロー構築、異常検知時のSNS通知および結果のS3保存のデモ
+
+scenario:
+  phases:
+    Phase1_Recap_and_Overview:
+      duration: 5
+      steps:
+        - "前回の内容を簡単に振り返り、重要ポイントを確認"
+          details:
+            - "前回学んだ主要な概念や技術スタックを再確認"
+            - "受講者からの質問やフィードバックを簡単に共有"
+        - "本日のセッションの全体構成と流れを再確認"
+          details:
+            - "各フェーズの目的と進め方を簡潔に説明"
+            - "タイムラインを提示し、参加者に流れを把握させる"
+
+    Phase2_Local_PySpark_Processing:
+      duration: 10
+      steps:
+        - "Jupyter Notebookを開く"
+          details:
+            - "必要なノートブックファイルや環境が整っていることを確認"
+        - "PySpark環境をセットアップする"
+          details:
+            - "SparkSessionの作成方法を説明"
+            - "例: from pyspark.sql import SparkSession"
+            - "     spark = SparkSession.builder.appName('WeatherApp').getOrCreate()"
+        - "公開気象データを読み込み、各種統計量を計算する処理を実装"
+          details:
+            - "例: df = spark.read.csv('weather_data.csv', header=True, inferSchema=True)"
+            - "     df.describe().show() などで基本統計量を算出"
+        - "計算結果を確認し、動作を説明"
+          details:
+            - "出力された統計値を解釈し、どのような情報が得られたかを説明"
+
+    Phase3_Run_on_Glue:
+      duration: 15
+      steps:
+        - "既にセットアップ済みのAWS Glue環境を利用"
+          details:
+            - "前もって準備したPySparkスクリプトがGlueジョブとして登録されていることを確認"
+        - "Glueジョブを実行する"
+          details:
+            - "GlueコンソールまたはGlue Studioにアクセスし、対象のジョブを選択"
+            - "ジョブを開始し、その実行を監視する"
+        - "ジョブ実行結果を確認する"
+          details:
+            - "ジョブの完了を待ち、出力された統計量やログを確認"
+            - "期待通りの結果が得られていることを参加者に示す"
+
+    Phase4_StepFunctions_Workflow_Demo:
+      duration: 15
+      steps:
+        - "AWS Step Functionsの基本概念を簡潔に紹介"
+          details:
+            - "ステートマシンの目的と本デモで使用するワークフローの概要を説明"
+        - "既に構成済みのStep Functionsワークフローを実行する"
+          details:
+            - "AWS管理コンソールで対象のステートマシンにアクセス"
+            - "「実行開始」ボタンを押してワークフローを起動"
+        - "ワークフローの動作を確認する"
+          details:
+            - "各ステップの進行状況をコンソール上で確認し、正常動作を参加者に見せる"
+            - "Glueジョブの起動、SNS通知、S3保存が正しく行われる様子をデモ"
+        - "ワークフローの全体像と利点を解説する"
+          details:
+            - "Step Functionsによる自動化とエラーハンドリングの利点を強調"
+            - "異常検知時の通知フローや結果保存の流れを説明"
+
+    Phase5_Conclusion:
+      duration: 5
+      steps:
+        - "実践セッションの振り返り"
+          details:
+            - "今日の学びや重要ポイントをまとめる"
+        - "今後の学習のためのリソースや次のステップを紹介"
+          details:
+            - "参考になるドキュメントやチュートリアルを提示"
+        - "質疑応答セッション"
+          details:
+            - "参加者からの質問に答える時間を設ける"
