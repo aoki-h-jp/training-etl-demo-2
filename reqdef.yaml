@@ -22,11 +22,9 @@ scenario:
         - "前回の内容を簡単に振り返り、重要ポイントを確認"
           details:
             - "前回学んだ主要な概念や技術スタックを再確認"
-            - "受講者からの質問やフィードバックを簡単に共有"
         - "本日のセッションの全体構成と流れを再確認"
           details:
             - "各フェーズの目的と進め方を簡潔に説明"
-            - "タイムラインを提示し、参加者に流れを把握させる"
 
     Phase2_Local_PySpark_Processing:
       duration: 10
@@ -36,20 +34,26 @@ scenario:
             - "必要なノートブックファイルや環境が整っていることを確認"
         - "PySpark環境をセットアップする"
           details:
-            - "SparkSessionの作成方法を説明"
-            - "例: from pyspark.sql import SparkSession"
-            - "     spark = SparkSession.builder.appName('WeatherApp').getOrCreate()"
-        - "公開気象データを読み込み、各種統計量を計算する処理を実装"
+            - "SparkSessionの作成方法を振り返りつつ、Amazon USのレビューデータセットでのPySpark環境をlocalで構築する"
+            - "まずはローカルマシンにインストールされたPython環境、または仮想環境（venv/condaなど）で`pyspark`が使用できるか確認"
+            - "適宜、`pip install pyspark`などでPySparkをインストール"
+            - "Jupyter Notebook上で下記のサンプルコードを実行し、SparkSessionを生成してエラーが出ないことを確認:\n\n```python\nfrom pyspark.sql import SparkSession\n\nspark = SparkSession.builder \\\n    .appName(\"LocalTest\") \\\n    .master(\"local[*]\") \\\n    .getOrCreate()\n\nprint(spark)\n```\n"
+            - "検証用にAmazon USのレビュー（例: Amazon Reviewデータセットの一部サンプルCSV）をローカルフォルダに配置し、PySparkのDataFrameで読み込めるか確認"
+        - "結果を確認し、動作を説明"
           details:
-            - "例: df = spark.read.csv('weather_data.csv', header=True, inferSchema=True)"
-            - "     df.describe().show() などで基本統計量を算出"
-        - "計算結果を確認し、動作を説明"
-          details:
-            - "出力された統計値を解釈し、どのような情報が得られたかを説明"
+            - "SparkSessionやDataFrameの基本情報（スキーマ、件数など）をprintして確認"
+            - "単純な集計やフィルター処理を実行し、PySparkの動きを手短に説明"
+            - "例えば星評価ごとのレビュー件数を集計し、その結果をNotebook上で表示するなどのデモを行う"
 
     Phase3_Run_on_Glue:
       duration: 15
       steps:
+        - "Glueのcdkを利用して機能などを解説する"
+          details:
+            - "AWS CDKを使用してGlueジョブをコードベースで定義する流れを紹介"
+            - "CDKプロジェクトのディレクトリ構成や必要なパッケージ（@aws-cdk/aws-glue-alphaなど）を説明"
+            - "Glueジョブのリソース定義、IAMロールの付与、ジョブスクリプトのS3デプロイ方法などの概要を解説"
+            - "Infrastructure as Codeにより、Glueジョブの設定変更や管理が容易になるメリットを強調"
         - "既にセットアップ済みのAWS Glue環境を利用"
           details:
             - "前もって準備したPySparkスクリプトがGlueジョブとして登録されていることを確認"
@@ -68,6 +72,7 @@ scenario:
         - "AWS Step Functionsの基本概念を簡潔に紹介"
           details:
             - "ステートマシンの目的と本デモで使用するワークフローの概要を説明"
+            - "本デモのワークフロー例:\n  1) Glueジョブの起動\n  2) 成功・失敗判定による分岐（失敗時はSNS通知）\n  3) 正常終了時にS3に結果を書き込むステップ\n  4) 終了時にSNSで成功通知\n\n  といった流れをステートマシンとして定義していることを紹介"
         - "既に構成済みのStep Functionsワークフローを実行する"
           details:
             - "AWS管理コンソールで対象のステートマシンにアクセス"
