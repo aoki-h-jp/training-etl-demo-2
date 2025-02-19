@@ -133,7 +133,6 @@ export class Demo2aStack extends cdk.Stack {
       defaultArguments: {
         '--job-language': 'python',
         '--continuous-log-logGroup': '/aws-glue/jobs',
-        '--input_bucket': dataBucket.bucketName,
         '--processed_bucket': processedBucket.bucketName,
         '--dynamodb_table': table.tableName,
       },
@@ -172,6 +171,7 @@ export class Demo2aStack extends cdk.Stack {
         conditions: [{
           jobName: notebookJob.name,
           state: 'SUCCEEDED',
+          crawlerName: undefined,
           logicalOperator: 'EQUALS'
         }],
         logical: 'AND',
