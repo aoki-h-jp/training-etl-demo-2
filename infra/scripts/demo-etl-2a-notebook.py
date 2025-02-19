@@ -1,36 +1,37 @@
+import sys
+from awsglue.transforms import *
+from awsglue.utils import getResolvedOptions
 from pyspark.context import SparkContext
 from awsglue.context import GlueContext
 from awsglue.job import Job
-from awsglue.utils import getResolvedOptions
 from pyspark.sql.functions import explode, split
-import sys
-from datetime import datetime
 import json
 import boto3
+from datetime import datetime
 
-# Glueジョブの初期化
+# ジョブパラメータの取得
 args = getResolvedOptions(sys.argv, ["JOB_NAME", "input_bucket"])
-sc = SparkContext.getOrCreate()
+
+# Glueコンテキストの初期化
+sc = SparkContext()
 glueContext = GlueContext(sc)
 spark = glueContext.spark_session
 job = Job(glueContext)
 job.init(args["JOB_NAME"], args)
 
-# S3からTSVファイルを読み込む
-dyf = glueContext.create_dynamic_frame.from_options(
-    format_options={"withHeader": True, "separator": "\t"},
+# データの処理ロジックをここに実装
+# 例: CSVファイルの読み込みと変換処理
+dynamic_frame = glueContext.create_dynamic_frame.from_options(
     connection_type="s3",
-    format="csv",
     connection_options={
-        "paths": [f"s3://{args['input_bucket']}/"],
+        "paths": [f"s3://{args['input_bucket']}/input/"],
         "recurse": True,
-        "groupFiles": "inPartition",
-        "groupSize": "1048576",
     },
+    format="csv",
 )
 
 # DataFrameに変換
-df = dyf.toDF()
+df = dynamic_frame.toDF()
 
 # review_bodyカラムが存在する場合のみ処理を実行
 if "review_body" in df.columns:

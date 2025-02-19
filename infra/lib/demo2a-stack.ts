@@ -5,6 +5,7 @@ import * as glue from 'aws-cdk-lib/aws-glue';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as path from 'path';
+import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
 
 export class Demo2aStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -23,6 +24,20 @@ export class Demo2aStack extends cdk.Stack {
       bucketName: 'demo-etl-2a-processed-bucket',
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
+    });
+
+    // Glueスクリプト用のS3バケットを作成
+    const scriptsBucket = new s3.Bucket(this, 'GlueScriptsBucket', {
+      bucketName: `demo-etl-2a-scripts-${this.account}-${this.region}`,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+    });
+
+    // スクリプトをS3にアップロード
+    const notebookScript = new s3deploy.BucketDeployment(this, 'DeployNotebookScript', {
+      sources: [s3deploy.Source.asset('scripts')],
+      destinationBucket: scriptsBucket,
+      destinationKeyPrefix: 'glue-scripts'
     });
 
     // Glue用のIAMロールの作成
@@ -92,7 +107,7 @@ export class Demo2aStack extends cdk.Stack {
       command: {
         name: 'glueetl',
         pythonVersion: '3',
-        scriptLocation: 's3://aws-glue-assets-${AWS::AccountId}-${AWS::Region}/scripts/demo-etl-2a-notebook.py',
+        scriptLocation: `s3://${scriptsBucket.bucketName}/glue-scripts/demo-etl-2a-notebook.py`,
       },
       defaultArguments: {
         '--job-language': 'python',
@@ -113,7 +128,7 @@ export class Demo2aStack extends cdk.Stack {
       command: {
         name: 'glueetl',
         pythonVersion: '3',
-        scriptLocation: 's3://aws-glue-assets-${AWS::AccountId}-${AWS::Region}/scripts/process_tsv.py',
+        scriptLocation: `s3://${scriptsBucket.bucketName}/glue-scripts/process_tsv.py`,
       },
       defaultArguments: {
         '--job-language': 'python',
@@ -170,6 +185,9 @@ export class Demo2aStack extends cdk.Stack {
     // バケットへのアクセス権限を追加
     dataBucket.grantReadWrite(glueRole);
     processedBucket.grantReadWrite(glueRole);
+
+    // スクリプトバケットへのアクセス権限を追加
+    scriptsBucket.grantRead(glueRole);
 
   }
 }
