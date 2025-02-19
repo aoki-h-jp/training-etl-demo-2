@@ -29,21 +29,21 @@ scenario:
     Phase2_Local_PySpark_Processing:
       duration: 10
       steps:
-        - "Jupyter Notebookを開く"
+        - "AWS Glue Studioを開く"
           details:
+            - "AWS Glue > Data Integration and ETL > ETL jobs > Notebooks > Start fresh"
             - "必要なノートブックファイルや環境が整っていることを確認"
         - "PySpark環境をセットアップする"
           details:
-            - "SparkSessionの作成方法を振り返りつつ、Amazon USのレビューデータセットでのPySpark環境をlocalで構築する"
-            - "まずはローカルマシンにインストールされたPython環境、または仮想環境（venv/condaなど）で`pyspark`が使用できるか確認"
-            - "適宜、`pip install pyspark`などでPySparkをインストール"
-            - "Jupyter Notebook上で下記のサンプルコードを実行し、SparkSessionを生成してエラーが出ないことを確認:\n\n```python\nfrom pyspark.sql import SparkSession\n\nspark = SparkSession.builder \\\n    .appName(\"LocalTest\") \\\n    .master(\"local[*]\") \\\n    .getOrCreate()\n\nprint(spark)\n```\n"
-            - "検証用にAmazon USのレビュー（例: Amazon Reviewデータセットの一部サンプルCSV）をローカルフォルダに配置し、PySparkのDataFrameで読み込めるか確認"
-        - "結果を確認し、動作を説明"
+            - "SparkSessionの作成方法を振り返りつつ、Amazon USのレビューデータセットでのPySpark環境をAWS Glue Studioで構築する"
+            - "検証用にAmazon USのレビュー（例: Amazon Reviewデータセットの一部サンプルCSV）をS3に配置し、PySparkのDataFrameで読み込めるか確認"
+            - "前回の復習を行う"
+        - "PySparkのDataFrameを使ったデータ処理の実装"
           details:
-            - "SparkSessionやDataFrameの基本情報（スキーマ、件数など）をprintして確認"
-            - "単純な集計やフィルター処理を実行し、PySparkの動きを手短に説明"
-            - "例えば星評価ごとのレビュー件数を集計し、その結果をNotebook上で表示するなどのデモを行う"
+            - "単語の出現頻度を集計する処理を実装する"
+            - "pandasとpysparkを比較する"
+              - "実際に数十倍の差が出る"
+            - "この結果をDynamoDBに入れるのは後で実装する"
 
     Phase3_Run_on_Glue:
       duration: 15
