@@ -17,7 +17,7 @@ requirements:
 scenario:
   phases:
     Phase1_Recap_and_Overview:
-      duration: 5
+      duration: 10
       steps:
         - "前回の内容を簡単に振り返り、重要ポイントを確認"
           details:
@@ -45,8 +45,8 @@ scenario:
               - "実際に数十倍の差が出る"
             - "この結果をDynamoDBに入れるのは後で実装する"
 
-    Phase3_Run_on_Glue:
-      duration: 15
+    Phase3_Run_on_Glue_Analyse_on_Athena:
+      duration: 20
       steps:
         - "Glueのcdkを利用して機能などを解説する"
           details:
@@ -61,32 +61,18 @@ scenario:
           details:
             - "GlueコンソールまたはGlue Studioにアクセスし、対象のジョブを選択"
             - "ジョブを開始し、その実行を監視する"
+            - "トリガーではなく手動実行で実行する"
         - "ジョブ実行結果を確認する"
           details:
             - "ジョブの完了を待ち、出力された統計量やログを確認"
-            - "期待通りの結果が得られていることを参加者に示す"
+            - "parquetでの出力結果を確認する"
+        - "Athenaで分析を行う"
+          details:
+            - "Glueの出力結果をAthenaで分析する"
+            - "事前にテーブルを作成し、データの読み込みを行う"
+            - "クエリする"
 
-    Phase4_StepFunctions_Workflow_Demo:
-      duration: 15
-      steps:
-        - "AWS Step Functionsの基本概念を簡潔に紹介"
-          details:
-            - "ステートマシンの目的と本デモで使用するワークフローの概要を説明"
-            - "本デモのワークフロー例:\n  1) Glueジョブの起動\n  2) 成功・失敗判定による分岐（失敗時はSNS通知）\n  3) 正常終了時にS3に結果を書き込むステップ\n  4) 終了時にSNSで成功通知\n\n  といった流れをステートマシンとして定義していることを紹介"
-        - "既に構成済みのStep Functionsワークフローを実行する"
-          details:
-            - "AWS管理コンソールで対象のステートマシンにアクセス"
-            - "「実行開始」ボタンを押してワークフローを起動"
-        - "ワークフローの動作を確認する"
-          details:
-            - "各ステップの進行状況をコンソール上で確認し、正常動作を参加者に見せる"
-            - "Glueジョブの起動、SNS通知、S3保存が正しく行われる様子をデモ"
-        - "ワークフローの全体像と利点を解説する"
-          details:
-            - "Step Functionsによる自動化とエラーハンドリングの利点を強調"
-            - "異常検知時の通知フローや結果保存の流れを説明"
-
-    Phase5_Conclusion:
+    Phase4_Conclusion:
       duration: 5
       steps:
         - "実践セッションの振り返り"
@@ -95,6 +81,3 @@ scenario:
         - "今後の学習のためのリソースや次のステップを紹介"
           details:
             - "参考になるドキュメントやチュートリアルを提示"
-        - "質疑応答セッション"
-          details:
-            - "参加者からの質問に答える時間を設ける"
