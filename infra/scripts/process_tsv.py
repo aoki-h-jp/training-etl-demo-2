@@ -67,60 +67,76 @@ print(f"Parquetファイルの読み込み完了: {word_counts_df.count()}行の
 print("DynamoDBへのバッチ書き込み処理の開始")
 
 
-def batch_write_items(items):
-    print(f"バッチ処理開始: {len(items)}件")
-    dynamodb = boto3.resource("dynamodb")
-    table = dynamodb.Table(args["dynamodb_table"])
+def batch_write_items(iterator):
+    try:
+        print("パーティション処理開始")
+        dynamodb = boto3.resource("dynamodb")
+        table = dynamodb.Table(args["dynamodb_table"])
 
-    # DynamoDBの制限（25アイテム）に合わせてサブバッチに分割
-    for i in range(0, len(items), 25):
-        sub_batch = items[i : i + 25]
-        with table.batch_writer() as batch:
-            for item in sub_batch:
-                batch.put_item(Item=item)
-        print(
-            f"サブバッチ処理完了: {len(sub_batch)}件 ({i + 1}～{i + len(sub_batch)}件目)"
-        )
+        items_batch = []
+        count = 0
+
+        for row in iterator:
+            try:
+                item = {
+                    "id": f"word_{row['word']}",
+                    "word": row["word"],
+                    "count": int(row["count"]),
+                    "timestamp": datetime.now().isoformat(),
+                    "analysis_metadata": latest_metadata if latest_metadata else {},
+                }
+                items_batch.append(item)
+                count += 1
+
+                # 25件ごとにバッチ書き込み
+                if len(items_batch) >= 25:
+                    try:
+                        with table.batch_writer() as batch:
+                            for item in items_batch:
+                                batch.put_item(Item=item)
+                        print(f"サブバッチ処理完了: {len(items_batch)}件")
+                        items_batch = []
+                    except Exception as e:
+                        print(f"バッチ書き込みエラー: {str(e)}")
+                        raise
+
+            except Exception as e:
+                print(f"行処理エラー: {str(e)}")
+                raise
+
+        # 残りのアイテムを書き込み
+        if items_batch:
+            try:
+                with table.batch_writer() as batch:
+                    for item in items_batch:
+                        batch.put_item(Item=item)
+                print(f"最終バッチ処理完了: {len(items_batch)}件")
+            except Exception as e:
+                print(f"最終バッチ書き込みエラー: {str(e)}")
+                raise
+
+        print(f"パーティション処理完了: 合計{count}件")
+
+    except Exception as e:
+        print(f"パーティション処理エラー: {str(e)}")
+        raise
 
 
-# DataFrameをパーティション分割して処理
-PARTITION_SIZE = 1000  # より大きなバッチサイズ
-print(f"パーティションサイズ: {PARTITION_SIZE}")
+# パーティション数を設定（Sparkワーカーの数に応じて調整）
+NUM_PARTITIONS = 10
+print(f"パーティション数: {NUM_PARTITIONS}")
 
-# collect()の代わりにtoLocalIterator()を使用してメモリ効率を改善
+# DataFrameをパーティション分割
 total_count = word_counts_df.count()
 print(f"全{total_count}行のデータを処理開始")
 
-items_batch = []
-processed_count = 0
+# repartitionでデータを分割し、foreachPartitionで並列処理
+print("並列処理の開始")
+word_counts_df.repartition(NUM_PARTITIONS).foreachPartition(batch_write_items)
+print("並列処理の完了")
 
-for row in word_counts_df.toLocalIterator():
-    item = {
-        "id": f"word_{row['word']}",
-        "word": row["word"],
-        "count": int(row["count"]),
-        "timestamp": datetime.now().isoformat(),
-        "analysis_metadata": latest_metadata if latest_metadata else {},
-    }
-    items_batch.append(item)
-    processed_count += 1
-
-    # パーティションサイズに達したら書き込み
-    if len(items_batch) >= PARTITION_SIZE:
-        batch_write_items(items_batch)
-        print(
-            f"進捗: {processed_count}/{total_count} ({(processed_count / total_count * 100):.1f}%)"
-        )
-        items_batch = []
-
-# 残りのアイテムを書き込み
-if items_batch:
-    batch_write_items(items_batch)
-    print(
-        f"進捗: {processed_count}/{total_count} ({(processed_count / total_count * 100):.1f}%)"
-    )
-
-print("全データの書き込み完了")
+# 処理件数の確認
+print(f"処理完了: 合計{total_count}件")
 
 print("ジョブのコミット開始")
 job.commit()
